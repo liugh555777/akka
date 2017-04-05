@@ -74,7 +74,13 @@ private[typed] class ActorSystemAdapter[-T](val untyped: a.ActorSystemImpl)
 private[typed] object ActorSystemAdapter {
   def apply(untyped: a.ActorSystem): ActorSystem[Nothing] = new ActorSystemAdapter(untyped.asInstanceOf[a.ActorSystemImpl])
 
-  object ReceptionistExtension extends a.ExtensionKey[ReceptionistExtension]
+  object ReceptionistExtension extends a.ExtensionId[ReceptionistExtension] with a.ExtensionIdProvider {
+    override def get(system: a.ActorSystem): ReceptionistExtension = super.get(system)
+    override def lookup = ReceptionistExtension
+    override def createExtension(system: a.ExtendedActorSystem): ReceptionistExtension =
+      new ReceptionistExtension(system)
+  }
+
   class ReceptionistExtension(system: a.ExtendedActorSystem) extends a.Extension {
     val receptionist: ActorRef[patterns.Receptionist.Command] =
       ActorRefAdapter(system.systemActorOf(PropsAdapter(patterns.Receptionist.behavior, EmptyDeploymentConfig), "receptionist"))

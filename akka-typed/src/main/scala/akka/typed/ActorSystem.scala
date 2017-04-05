@@ -180,6 +180,12 @@ object ActorSystem {
                  classLoader:         Option[ClassLoader]      = None,
                  executionContext:    Option[ExecutionContext] = None,
                  actorSystemSettings: ActorSystemSetup         = ActorSystemSetup.empty): ActorSystem[T] = {
+
+    // FIXME I'm not sure how useful this mode is for end-users. It has the limitation that untyped top level
+    // actors can't be created, because we have a custom user guardian. I would imagine that if you have
+    // a system of both untyped and typed actors (e.g. adding some typed actors to an existing application)
+    // you would start an untyped.ActorSystem and spawn typed actors from that system or from untyped actors.
+
     Behavior.validateAsInitial(guardianBehavior)
     val cl = classLoader.getOrElse(akka.actor.ActorSystem.findClassLoader())
     val appConfig = config.getOrElse(ConfigFactory.load(cl))

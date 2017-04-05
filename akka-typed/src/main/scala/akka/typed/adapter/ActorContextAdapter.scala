@@ -13,6 +13,8 @@ import scala.concurrent.ExecutionContextExecutor
  */
 private[typed] class ActorContextAdapter[T](ctx: a.ActorContext) extends ActorContext[T] {
 
+  // FIXME explicit return types
+
   override def self = ActorRefAdapter(ctx.self)
   override val system = ActorSystemAdapter(ctx.system)
   override def mailboxCapacity = 1 << 29 // FIXME

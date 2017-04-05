@@ -10,7 +10,7 @@ private[typed] class ActorRefAdapter[-T](val untyped: a.InternalActorRef)
   extends ActorRef[T](untyped.path) with internal.ActorRefImpl[T] {
 
   override def tell(msg: T): Unit = untyped ! msg
-  override def isLocal: Boolean = true
+  override def isLocal: Boolean = untyped.isLocal
   override def sendSystem(signal: internal.SystemMessage): Unit = sendSystemMessage(untyped, signal)
 }
 

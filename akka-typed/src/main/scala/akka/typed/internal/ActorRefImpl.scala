@@ -12,6 +12,7 @@ import scala.util.control.NonFatal
 import scala.concurrent.Future
 import java.util.ArrayList
 import scala.util.{ Success, Failure }
+import akka.typed.adapter.ActorRefAdapter
 
 /**
  * Every ActorRef is also an ActorRefImpl, but these two methods shall be
@@ -150,6 +151,10 @@ private[typed] class FutureRef[-T](_path: a.ActorPath, bufferSize: Int, f: Futur
             val it = list.iterator
             while (it.hasNext) ref ! it.next()
             if (unsafe.compareAndSwapObject(this, targetOffset, l, Right(ref)))
+              ref match {
+                case _: ActorRefAdapter[_] ⇒
+              }
+            if (!ref.isInstanceOf[ActorRefAdapter[_]]) // Watch is only nice to have
               ref.sorry.sendSystem(Watch(ref, this))
             // if this fails, concurrent termination has won and there is no point in watching
           }
@@ -161,8 +166,9 @@ private[typed] class FutureRef[-T](_path: a.ActorPath, bufferSize: Int, f: Futur
   override def terminate(): Unit = {
     val old = unsafe.getAndSetObject(this, targetOffset, Right(BlackholeActorRef))
     old match {
-      case Right(target: ActorRef[_]) ⇒ target.sorry.sendSystem(Unwatch(target, this))
-      case _                          ⇒ // nothing to do
+      case Right(target: ActorRefAdapter[_]) ⇒ // Watch is only nice to have, but not supported for adapter
+      case Right(target: ActorRef[_])        ⇒ target.sorry.sendSystem(Unwatch(target, this))
+      case _                                 ⇒ // nothing to do
     }
   }
 
